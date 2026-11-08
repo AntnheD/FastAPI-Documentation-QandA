@@ -1,0 +1,116 @@
+name: Code Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Linting, Formatting & Type Checking
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Detect Python code and quality configs
+        id: detect
+        run: |
+          has_code=false
+          if find . -name "*.py" -not -path "*/.*" -not -path "./venv/*" -not -path "./.venv/*" | grep -q .; then
+            has_code=true
+          fi
+          echo "has_code=$has_code" >> "$GITHUB_OUTPUT"
+
+          has_mypy=false
+          if [ -f "mypy.ini" ] || [ -f ".mypy.ini" ] || ( [ -f "pyproject.toml" ] && grep -q "\[tool\.mypy" pyproject.toml 2>/dev/null ); then
+            has_mypy=true
+          fi
+          echo "has_mypy=$has_mypy" >> "$GITHUB_OUTPUT"
+
+          has_pyright=false
+          if [ -f "pyrightconfig.json" ] || ( [ -f "pyproject.toml" ] && grep -q "\[tool\.pyright" pyproject.toml 2>/dev/null ); then
+            has_pyright=true
+          fi
+          echo "has_pyright=$has_pyright" >> "$GITHUB_OUTPUT"
+
+          echo "Detection results:"
+          echo "  - Python source code present: $has_code"
+          echo "  - Mypy configuration:         $has_mypy"
+          echo "  - Pyright configuration:      $has_pyright"
+
+      - name: Python syntax validation
+        run: |
+          if [ "${{ steps.detect.outputs.has_code }}" = "true" ]; then
+            echo "Validating Python syntax with compileall..."
+            python -m compileall -q .
+            echo "Python syntax validation passed."
+          else
+            echo "No Python files found. Skipping syntax validation."
+          fi
+
+      - name: Ruff linting and formatting validation
+        run: |
+          if [ "${{ steps.detect.outputs.has_code }}" = "true" ]; then
+            echo "Installing Ruff..."
+            python -m pip install --upgrade pip ruff
+            echo "Running Ruff lint check..."
+            ruff check .
+            echo "Running Ruff format check..."
+            ruff format --check .
+          else
+            echo "No Python files found. Skipping Ruff linting and formatting."
+          fi
+
+      - name: Python static type checking
+        run: |
+          if [ "${{ steps.detect.outputs.has_code }}" = "true" ]; then
+            if [ "${{ steps.detect.outputs.has_mypy }}" = "true" ]; then
+              echo "Mypy configuration detected. Installing mypy..."
+              python -m pip install --upgrade pip mypy
+              echo "Running Mypy static type checker..."
+              mypy .
+            elif [ "${{ steps.detect.outputs.has_pyright }}" = "true" ]; then
+              echo "Pyright configuration detected. Installing pyright..."
+              python -m pip install --upgrade pip pyright
+              echo "Running Pyright static type checker..."
+              pyright
+            else
+              echo "No static type checking configuration found (mypy/pyright). Skipping type check."
+            fi
+          else
+            echo "No Python files found. Skipping static type checking."
+          fi
+
+      - name: Report quality summary
+        if: always()
+        run: |
+          {
+            echo "### Code Quality Summary"
+            echo ""
+            echo "| Check | Status |"
+            echo "| :--- | :--- |"
+            echo "| Syntax Validation | ${{ steps.detect.outputs.has_code == 'true' && '✅ Executed' || '⏭️ Skipped (no source)' }} |"
+            echo "| Ruff Lint & Format | ${{ steps.detect.outputs.has_code == 'true' && '✅ Executed' || '⏭️ Skipped (no source)' }} |"
+            echo "| Static Type Checking | ${{ steps.detect.outputs.has_mypy == 'true' && '✅ Executed (Mypy)' || (steps.detect.outputs.has_pyright == 'true' && '✅ Executed (Pyright)' || '⏭️ Skipped (not configured)') }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
