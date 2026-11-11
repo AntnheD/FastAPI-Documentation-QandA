@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
@@ -88,9 +90,11 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
       - name: Install dependencies
+        env:
+          HAS_DEPS: ${{ steps.config.outputs.has_deps }}
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          if [ "${{ steps.config.outputs.has_deps }}" = "true" ]; then
+          if [ "$HAS_DEPS" = "true" ]; then
             if [ -f "pyproject.toml" ]; then
               echo "Installing package from pyproject.toml..."
               if pip install -e ".[dev,test]" 2>/dev/null; then
@@ -113,8 +117,10 @@ jobs:
           fi
 
       - name: Check Python compilation syntax
+        env:
+          HAS_CODE: ${{ steps.config.outputs.has_code }}
         run: |
-          if [ "${{ steps.config.outputs.has_code }}" = "true" ]; then
+          if [ "$HAS_CODE" = "true" ]; then
             echo "Compiling Python source files across repository..."
             python -m compileall -q .
             echo "Python syntax compilation check passed."
@@ -123,8 +129,10 @@ jobs:
           fi
 
       - name: Check code formatting and linting (Ruff)
+        env:
+          HAS_RUFF: ${{ steps.config.outputs.has_ruff }}
         run: |
-          if [ "${{ steps.config.outputs.has_ruff }}" = "true" ]; then
+          if [ "$HAS_RUFF" = "true" ]; then
             echo "Ruff configuration detected; installing ruff..."
             pip install ruff
             echo "Running Ruff linter..."
@@ -136,8 +144,10 @@ jobs:
           fi
 
       - name: Run test suite with coverage
+        env:
+          HAS_TESTS: ${{ steps.config.outputs.has_tests }}
         run: |
-          if [ "${{ steps.config.outputs.has_tests }}" = "true" ]; then
+          if [ "$HAS_TESTS" = "true" ]; then
             echo "Test suite detected. Ensuring pytest is installed..."
             if ! command -v pytest >/dev/null 2>&1; then
               pip install pytest
@@ -154,8 +164,10 @@ jobs:
           fi
 
       - name: Validate package build
+        env:
+          HAS_PACKAGE_CONFIG: ${{ steps.config.outputs.has_package_config }}
         run: |
-          if [ "${{ steps.config.outputs.has_package_config }}" = "true" ]; then
+          if [ "$HAS_PACKAGE_CONFIG" = "true" ]; then
             echo "pyproject.toml detected. Validating package build..."
             python -m pip install --upgrade build
             python -m build
