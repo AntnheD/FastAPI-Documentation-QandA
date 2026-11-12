@@ -21,7 +21,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from docqa.config import Config
 from docqa.errors import DocQAError, EmptyQuestionError
@@ -31,7 +31,23 @@ CLIENT_DIR = Path(__file__).resolve().parents[1] / "client"
 
 
 class AskRequest(BaseModel):
-    question: str = Field(..., description="A natural-language question about FastAPI")
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="A natural-language question about FastAPI",
+    )
+
+    @field_validator("question")
+    @classmethod
+    def validate_question(cls, value: str) -> str:
+        question = value.strip()
+
+        if not question:
+            raise ValueError("Question cannot be empty")
+
+        return question
+    
 
 
 @asynccontextmanager
