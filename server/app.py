@@ -19,13 +19,12 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, field_validator
-
 from docqa.config import Config
 from docqa.errors import DocQAError, EmptyQuestionError
 from docqa.pipeline import DocQAPipeline
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field, field_validator
 
 CLIENT_DIR = Path(__file__).resolve().parents[1] / "client"
 
