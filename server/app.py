@@ -7,7 +7,7 @@ Run from the repository root:
 Then open http://127.0.0.1:8000/ for the demo page, or POST to /ask:
 
     curl -X POST http://127.0.0.1:8000/ask -H "Content-Type: application/json" \
-         -d '{"question": "How do I make a query parameter optional?"}'
+        -d '{"question": "How do I make a query parameter optional?"}'
 
 The pipeline is loaded once at startup from DOCQA_CONFIG (default configs/default.json).
 This server is not needed for evaluation; `python -m docqa ask` covers the CLI path.
@@ -21,7 +21,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from docqa.config import Config
 from docqa.errors import DocQAError, EmptyQuestionError
@@ -47,7 +47,6 @@ class AskRequest(BaseModel):
             raise ValueError("Question cannot be empty")
 
         return question
-    
 
 
 @asynccontextmanager
