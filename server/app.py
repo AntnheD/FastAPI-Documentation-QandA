@@ -84,4 +84,4 @@ def ask(body: AskRequest) -> dict:
 
 
 if CLIENT_DIR.is_dir():
- app.mount("/", StaticFiles(directory=str(CLIENT_DIR), html=True), name="client")
+    app.mount("/", StaticFiles(directory=str(CLIENT_DIR), html=True), name="client")
