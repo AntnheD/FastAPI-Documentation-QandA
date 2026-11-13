@@ -32,7 +32,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]  # "." makes server/app.py importable for the API tests
 addopts = "-q"
 markers = [
     "slow: needs model downloads or several seconds (deselect with -m 'not slow')",
