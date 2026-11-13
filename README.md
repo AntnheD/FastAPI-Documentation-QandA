@@ -5,14 +5,14 @@ Answers are generated from retrieved documentation passages and cite the
 sections they come from; when the documentation does not support an answer,
 the system abstains instead of guessing.
 
-## 🚀 Tech Stack
+##  Tech Stack
 - **Frontend:** static HTML/JavaScript page (`client/index.html`), served by the backend
 - **Backend:** FastAPI / Python (`server/app.py`)
 - **Q&A pipeline:** `src/docqa/` — BM25, dense (sentence-transformers) and hybrid
   retrieval, Hugging Face Transformer or extractive answer generation, and
   sentence-level grounding with citations
 
-## 🗂️ Project Structure
+##  Project Structure
 ```
 client/              Demo web page (calls POST /ask)
 server/app.py        FastAPI app: /health, /ask, serves client/
@@ -32,7 +32,7 @@ data/evaluation/     58 labelled evaluation questions (dev/val/test)
 tests/               Unit and integration tests
 ```
 
-## 📖 How to Run
+##  How to Run
 
 ### 1. Install
 Python 3.10+ is required. A CPU is enough.
@@ -82,7 +82,7 @@ python -m docqa eval-retrieval --split val --methods bm25,dense
 python -m docqa eval-answers --split test --config configs/final.json --tag test_final
 ```
 
-## ✅ Testing
+##  Testing
 ```bash
 python -m pytest
 ruff check . && ruff format --check .
@@ -90,8 +90,9 @@ ruff check . && ruff format --check .
 The tests need no model downloads; `tests/test_api_integration.py` runs the
 full API -> pipeline -> retrieval -> generation path on the committed corpus.
 
-## 👥 Contributors
+##  Contributors
 - [AntnheD](https://github.com/AntnheD) (Antnhe Debebe)
 - [Yabu920](https://github.com/Yabu920) (Yeabsra Abera)
--  [Rekik Alemayehu](https://github.com/rekikalemayehu) (Rekik Alemayehu)
-- [tesamuel130](https://github.com/tesamuel130) (Samuel Tesfaye) — pipeline integration, configuration, evaluation and testing
+- [Rekik Alemayehu](https://github.com/rekikalemayehu) (Rekik Alemayehu)
+- [tesamuel130](https://github.com/tesamuel130) (Samuel Tesfaye) 
+- [ruthbiniam](https://github.com/ruthbiniam) (Ruth Biniam)
