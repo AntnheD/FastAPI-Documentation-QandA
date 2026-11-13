@@ -95,8 +95,3 @@ full API -> pipeline -> retrieval -> generation path on the committed corpus.
 - [Yabu920](https://github.com/Yabu920) (Yeabsra Abera)
 -  [Rekik Alemayehu](https://github.com/rekikalemayehu) (Rekik Alemayehu)
 - [tesamuel130](https://github.com/tesamuel130) (Samuel Tesfaye) — pipeline integration, configuration, evaluation and testing
-
-## 📚 Attribution
-The Q&A pipeline is adapted from the original project
-[AntnheD/sorseForSelectedTopics](https://github.com/AntnheD/sorseForSelectedTopics).
-The indexed content comes from the [FastAPI documentation](https://github.com/fastapi/fastapi).
