@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
 
 from .errors import CorpusNotFoundError, MalformedDataError
 
@@ -29,15 +29,15 @@ REQUIRED_FIELDS = (
 
 @dataclass(frozen=True)
 class Chunk:
-    id: str                 # "<source>::<chunk_index>", stable across runs
-    source: str             # path relative to the docs root, e.g. "tutorial/query-params.md"
-    section: str            # heading text of the section the chunk belongs to
-    section_anchor: str     # heading anchor, e.g. "optional-parameters"
-    heading_path: str       # "Doc title > Section > Subsection"
-    chunk_index: int        # position of the chunk within its document
-    text: str               # the passage text shown to the user and the model
+    id: str  # "<source>::<chunk_index>", stable across runs
+    source: str  # path relative to the docs root, e.g. "tutorial/query-params.md"
+    section: str  # heading text of the section the chunk belongs to
+    section_anchor: str  # heading anchor, e.g. "optional-parameters"
+    heading_path: str  # "Doc title > Section > Subsection"
+    chunk_index: int  # position of the chunk within its document
+    text: str  # the passage text shown to the user and the model
     n_words: int
-    doc_version: str        # documentation commit/date recorded at preprocessing time
+    doc_version: str  # documentation commit/date recorded at preprocessing time
 
     def index_text(self) -> str:
         """Text used for indexing: heading context plus the passage."""
@@ -82,7 +82,9 @@ def load_chunks(path: str | Path) -> list[Chunk]:
             try:
                 record = json.loads(line)
             except json.JSONDecodeError as exc:
-                raise MalformedDataError(f"{path}:{line_no}: invalid JSON ({exc.msg})") from exc
+                raise MalformedDataError(
+                    f"{path}:{line_no}: invalid JSON ({exc.msg})"
+                ) from exc
             if not isinstance(record, dict):
                 raise MalformedDataError(f"{path}:{line_no}: expected a JSON object")
             missing = [f for f in REQUIRED_FIELDS if f not in record]
@@ -91,7 +93,9 @@ def load_chunks(path: str | Path) -> list[Chunk]:
             if not record["source"]:
                 raise MalformedDataError(f"{path}:{line_no}: empty 'source' metadata")
             if record["id"] in seen_ids:
-                raise MalformedDataError(f"{path}:{line_no}: duplicate chunk id '{record['id']}'")
+                raise MalformedDataError(
+                    f"{path}:{line_no}: duplicate chunk id '{record['id']}'"
+                )
             seen_ids.add(record["id"])
             chunks.append(Chunk(**{f: record[f] for f in REQUIRED_FIELDS}))
     if not chunks:
@@ -114,4 +118,11 @@ def chunks_by_id(chunks: Iterable[Chunk]) -> dict[str, Chunk]:
     return {c.id: c for c in chunks}
 
 
-__all__ = ["Chunk", "load_chunks", "write_chunks", "corpus_fingerprint", "chunks_by_id", "REQUIRED_FIELDS"]
+__all__ = [
+    "REQUIRED_FIELDS",
+    "Chunk",
+    "chunks_by_id",
+    "corpus_fingerprint",
+    "load_chunks",
+    "write_chunks",
+]
